@@ -153,8 +153,7 @@ st.markdown("""
 # --- 3. CORE LOGIC FUNCTIONS ---
 
 
-# Initialize Groq client (In Streamlit Cloud, we use st.secrets for safety)
-# For local testing, you can paste your key here, but don't upload the key to GitHub!
+# Initialize Groq client 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 def get_ollama_response(messages):
@@ -370,7 +369,7 @@ else:
                     # 3. Add the new candidate to the list
                     existing_data.append(st.session_state.candidate_data)
 
-                    # 4. Save it back to your VS Code folder
+                  
                     with open(file_name, "w") as f:
                         json.dump(existing_data, f, indent=4)
                     # -----------------------------------
