@@ -187,24 +187,48 @@ def validate_input(text, step_name):
 
 import re
 
+import re
+
+import random
+import re
+
+def get_questions_for_stack(user_tech_input):
+    # 1. Clean the input and turn it into a list
+    # Replaces commas with spaces and splits into words
+    stack_list = re.split(r'[,\s]+', user_tech_input.strip())
+    stack_list = [tech for tech in stack_list if tech] # remove empty strings
+    
+    # 2. Randomly pick up to 3 technologies
+    num_to_select = min(len(stack_list), 3)
+    selected_techs = random.sample(stack_list, num_to_select)
+    tech_string = ", ".join(selected_techs)
+
+    # 3. Strict Prompt for selected techs
+    prompt = f"""
+    TASK: Generate exactly {num_to_select} technical interview questions.
+    TECHNOLOGIES TO FOCUS ON: {tech_string}
+    
+    STRICT RULES:
+    - Output ONLY the questions.
+    - One question per line.
+    - No introductions, no "Question 1", no "Sure thing".
+    - Focus on practical, senior-level knowledge.
+    """
+    
+    return prompt
+
 def clean_questions(raw_text):
-    # This finds everything between <question> and </question> tags
-    qs = re.findall(r'<question>(.*?)</question>', raw_text, re.DOTALL)
+    # Split by lines and remove empty ones/intro chatter
+    lines = [l.strip() for l in raw_text.split('\n') if len(l.strip()) > 15]
     
-    # If the AI failed to use tags, fallback to line cleaning
-    if not qs:
-        lines = [l.strip() for l in raw_text.split('\n') if len(l.strip()) > 20]
-        for line in lines:
-            # Clean off labels like "1. " or "Q1: "
-            cleaned = re.sub(r'(?i)^(question\s*\d+\s*[:.-]?|q\d+\s*[:.-]?|\d+\s*[:.-])\s*', '', line)
-            if cleaned:
-                qs.append(cleaned)
+    # Filter out common AI intro phrases
+    forbidden = ["here are", "i selected", "sure", "technical question"]
+    clean_qs = [line for line in lines if not any(f in line.lower() for f in forbidden)]
     
-    # Always ensure we have exactly 3 questions for the UI state
-    while len(qs) < 3:
-        qs.append("Can you describe a complex technical challenge you faced and how you solved it?")
-        
-    return qs[:3]
+    # Clean off numbering (1., 2., etc)
+    final_qs = [re.sub(r'^\d+[\s\.\)-]+', '', q) for q in clean_qs]
+    
+    return final_qs[:3]
 
 # --- 4. SESSION STATE ---
 if "step" not in st.session_state: st.session_state.step = 0
