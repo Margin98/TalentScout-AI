@@ -1,0 +1,3 @@
+.streamlit/
+database.json
+__pycache__/
